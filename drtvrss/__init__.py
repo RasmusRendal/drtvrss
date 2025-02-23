@@ -43,6 +43,7 @@ def parse_show(s, url) -> RSSFeed:
 
 
 def get_show(show: str) -> RSSFeed:
+    show = show.split("_")[-1]
     if show not in shows or shows[show].age + 3600 < time():
         url = "https://www.dr.dk/drtv/serie/" + show
         print("Fetching show", url)
