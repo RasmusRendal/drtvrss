@@ -15,7 +15,7 @@ rss_feed_template = """<?xml version="1.0" encoding="UTF-8" ?>
  <title>FEED_TITLE</title>
  <description>FEED_DESCRIPTION</description>
  <link>FEED_URL</link>
- <ttl>3600</ttl>
+ <ttl>60</ttl>
 
  EPISODES
  </channel>
