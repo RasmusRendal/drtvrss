@@ -29,10 +29,13 @@
           };
           config = mkIf config.services.drtvrss.enable {
             systemd.services.drtvrss = let
-              servsrc = pkgs.writeTextFile {
-                name = "drtvrss";
-                text = builtins.readFile ./drtvrss.py;
-                destination = "/drtvrss.py";
+              servsrc = pkgs.stdenvNoCC.mkDerivation {
+                  name = "drtvrss";
+                src = ./.;
+                buildPhase = ''
+                    mkdir -p $out;
+                    cp -R ./* $out/
+                '';
               };
             in {
               enable = true;
