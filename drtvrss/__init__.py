@@ -4,7 +4,6 @@ from flask import Flask, Response, render_template
 from flask import abort
 from flask_caching import Cache
 from time import time
-from yt_dlp import YoutubeDL
 from zoneinfo import ZoneInfo
 import requests
 
@@ -78,13 +77,11 @@ def favicon():
 @cache.cached(timeout=15 * 60)
 def view_episode(showid, episode):
     show = get_show(showid)
-    if episode not in stream_urls:
-        url = "https://www.dr.dk/drtv/episode/" + episode
-        ydl = YoutubeDL()
-        i = ydl.extract_info(url, download=False)
-        stream_urls[episode] = i["formats"][-1]["manifest_url"]
-    videourl = stream_urls[episode]
-    return render_template("video.html", s=show, videourl=videourl)
+    e = None
+    for entry in show.entries:
+        if episode in entry.url:
+            e = entry
+    return render_template("video.html", s=show, e=e)
 
 
 @app.route("/<showid>/")

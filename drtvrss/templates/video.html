@@ -1,24 +1,87 @@
 <html>
     <head>
-        <title>{{ s.title }}</title>
+        <title>{{ s.title }} - {{ e.title }}</title>
         <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     </head>
     <body>
+        <h1>{{ s.title }} - {{ e.title }}</h1>
         <video id="video" controls width="100%"></video>
+        <p>{{ e.description }}</p>
         <script>
-            var video = document.getElementById('video');
-            var videoSrc = '{{ videourl }}'
 
-            if (Hls.isSupported()) {
-                var hls = new Hls();
-                hls.loadSource(videoSrc);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                    video.play();
+            async function getAnonymousToken() {
+                const url = "https://isl.dr-massive.com/api/authorization/anonymous-sso";
+
+                function generateUUID() {
+                    return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+
+                const deviceId = generateUUID();
+
+                const queryParams = new URLSearchParams({
+                    device: "phone_android",
+                    lang: "da",
+                    supportFallbackToken: "true"
                 });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = videoSrc;
+
+                const requestBody = JSON.stringify({
+                    deviceId: deviceId,
+                    scopes: ["Catalog"],
+                    optout: true
+                });
+
+                try {
+                    const response = await fetch(`${url}?${queryParams.toString()}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: requestBody
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const tokenResponse = await response.json();
+                    console.log("Token Response:", tokenResponse);
+                    return tokenResponse;
+                } catch (error) {
+                    console.error("Error fetching anonymous token:", error);
+                }
             }
+
+            async function start() {
+
+                var video = document.getElementById('video');
+
+                const token = await getAnonymousToken();
+                const videoID = document.URL.split("_").reverse()[0]
+                const response = await fetch("https://production-cdn.dr-massive.com/api/items/" + videoID + "/videos?delivery=stream&device=web_browser&ff=idp%2Cldp%2Crpt&lang=da&resolution=HD-1080&sub=Anonymous", {
+                    method: 'GET',
+                    headers: {
+                        'authorization': 'Bearer: ' + token,
+                    }
+                });
+                const j = await response.json();
+
+                var videoSrc = j[0]["url"];
+
+                if (Hls.isSupported()) {
+                    var hls = new Hls();
+                    hls.loadSource(videoSrc);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play();
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = videoSrc;
+                }
+            }
+            start()
         </script>
     </body>
 </html>
