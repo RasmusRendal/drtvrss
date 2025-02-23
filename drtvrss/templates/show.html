@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>{{ s.title }} - DRTV2</title>
+    </head>
+    <body>
+        <h1>{{ s.title }}</h1>
+        <a href="/{{ s.feed_url }}.xml">RSS Link</a>
+        <h2>Episodes</h2>
+        <ul>
+            {% for ep in s.entries %}
+            <li>
+                <a href="{{ ep.ep_link }}">{{ep.title}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

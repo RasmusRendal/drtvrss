@@ -1,6 +1,7 @@
 from typing import Optional
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from time import time
 
 
 class RSSEntry:
@@ -9,6 +10,8 @@ class RSSEntry:
         self.description = description
         self.url = url
         self.time = time
+        if url != None:
+            self.ep_link = url.split("/")[-1]
 
 
 class RSSFeed:
@@ -17,6 +20,9 @@ class RSSFeed:
         self.description = description
         self.url = url
         self.entries = []
+        self.age = time()
+        if url != None:
+            self.feed_url = url.split("/")[-1]
 
     def add_entry(self, entry: RSSEntry):
         self.entries.append(entry)

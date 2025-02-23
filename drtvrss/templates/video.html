@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <title>{{ s.title }}</title>
+        <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    </head>
+    <body>
+        <video id="video" controls width="100%"></video>
+        <script>
+            var video = document.getElementById('video');
+            var videoSrc = '{{ videourl }}'
+
+            if (Hls.isSupported()) {
+                var hls = new Hls();
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = videoSrc;
+            }
+        </script>
+    </body>
+</html>
