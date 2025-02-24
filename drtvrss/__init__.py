@@ -1,5 +1,4 @@
-from flask import Flask, Response, render_template
-from flask import abort
+from flask import Flask, Response, render_template, redirect, abort
 from flask_caching import Cache
 
 from .drtv import get_show, get_shows
@@ -11,10 +10,7 @@ cache = Cache(app)
 
 @app.route("/")
 def index():
-    shows = get_shows()
-    feed_list = "".join(
-        [f"<li><a href='{name}'>{s.title}</a></li>" for name, s in shows.items()])
-    return "Tilgængelig er blandt andet de følgende RSS feeds: <ul>" + feed_list + "</ul>" + "Andre serier kan sagtens findes, bare manipuler URLsene lidt. Kildekoden er at finde på <a href='https://github.com/RasmusRendal/drtvrss'>GitHub</a>"
+    return render_template("index.html", shows=get_shows().items())
 
 
 @app.route("/favicon.ico")
@@ -38,6 +34,16 @@ def view_episode(showid, episode):
 def view_show(showid):
     show = get_show(showid)
     return render_template("show.html", s=show)
+
+
+@app.route("/drtv/serie/<showid>")
+def longestlink(showid):
+    return redirect(f"/{showid}/", code=302)
+
+
+@app.route("/serie/<showid>")
+def longlink(showid):
+    return redirect(f"/{showid}/", code=302)
 
 
 @app.route("/<show>.xml")

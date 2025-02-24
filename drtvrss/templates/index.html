@@ -1,0 +1,19 @@
+<html>
+    <head>
+        <title>DRTV2</title>
+    </head>
+    <body>
+        <h1>DRTV2</h1>
+        Folk har indtil videre set de følgende serier fra DRTV:
+        <ul>
+            {% for n, s in shows %}
+            <li><a href="{{ n }}">{{ s.title }}</a></li>
+            {% endfor %}
+        </ul>
+        Andre serier kan sagtens findes, bare manipuler URLsene lidt.
+        Når du er inde på drtv, som f.eks. <a href="https://www.dr.dk/drtv/serie/matador_130149">https://www.dr.dk/drtv/serie/matador_130149</a>, så kan du bare slette www.dr.dk og erstatte det med drtv.rend.al.</br>
+        Film og gamle sæsoner har jeg ikke rigtig orket.</br>
+        Kildekoden er at finde på <a href='https://github.com/RasmusRendal/drtvrss'>GitHub</a></br>
+        Klager kan sendes til <a href="mailto:rasmus@rend.al">rasmus@rend.al</a>.
+
+</html>
