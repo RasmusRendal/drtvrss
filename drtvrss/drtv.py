@@ -42,10 +42,17 @@ def get_show(show: str) -> RSSFeed:
                        description=series["show"]["description"], url=url)
 
         for ep in series["episodes"]["items"]:
-            pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
+            pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
+            if "releaseYear" in ep:
+                pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
             try:
                 pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
                     " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
+            except:
+                pass
+            try:
+                pubdate = datetime.fromisoformat(
+                    ep["customFields"]["AvailableFrom"])
             except:
                 pass
             feed.add_entry(
