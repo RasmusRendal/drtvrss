@@ -12,7 +12,7 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
-      pythonEnv = pkgs.python3.withPackages (p: with p; [flask flask-caching requests gunicorn ]);
+      pythonEnv = pkgs.python3.withPackages (p: with p; [flask flask-caching requests gunicorn pylint]);
     in rec {
       devShells.default = pkgs.mkShell {
         buildInputs = [pythonEnv];
@@ -30,11 +30,11 @@
           config = mkIf config.services.drtvrss.enable {
             systemd.services.drtvrss = let
               servsrc = pkgs.stdenvNoCC.mkDerivation {
-                  name = "drtvrss";
+                name = "drtvrss";
                 src = ./.;
                 buildPhase = ''
-                    mkdir -p $out;
-                    cp -R ./* $out/
+                  mkdir -p $out;
+                  cp -R ./* $out/
                 '';
               };
             in {
