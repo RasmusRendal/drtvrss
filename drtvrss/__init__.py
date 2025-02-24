@@ -1,7 +1,7 @@
-from flask import Flask, Response, render_template, redirect, abort
+from flask import Flask, Response, render_template, redirect, abort, request
 from flask_caching import Cache
 
-from .drtv import get_show, get_shows
+from .drtv import get_show, get_shows, search
 
 app = Flask(__name__)
 app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
@@ -37,10 +37,6 @@ def view_show(showid):
 
 
 @app.route("/drtv/serie/<showid>")
-def longestlink(showid):
-    return redirect(f"/{showid}/", code=302)
-
-
 @app.route("/serie/<showid>")
 def longlink(showid):
     return redirect(f"/{showid}/", code=302)
@@ -50,3 +46,16 @@ def longlink(showid):
 @cache.cached(timeout=15 * 60)
 def get_feed(show):
     return Response(get_show(show).dump(), headers={"content-type": "application/rss+xml"})
+
+
+def make_search_cache_key():
+    return request.args.get("query")
+
+
+@app.route("/search/")
+@cache.cached(timeout=15 * 60, make_cache_key=make_search_cache_key)
+def search_view():
+    query = request.args.get("query")
+    results = search(query)
+    print(results)
+    return render_template("search.html", results=results, query=query)

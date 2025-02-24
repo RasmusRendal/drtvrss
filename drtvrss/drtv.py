@@ -3,6 +3,7 @@ from json.decoder import JSONDecodeError
 from time import time
 from zoneinfo import ZoneInfo
 import json
+import uuid
 
 from flask import abort
 import requests
@@ -47,7 +48,6 @@ def get_show(show: str) -> RSSFeed:
                     " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
             except:
                 pass
-            print(json.dumps(ep, indent=4))
             feed.add_entry(
                 RSSEntry(ep["contextualTitle"], description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
 
@@ -57,3 +57,24 @@ def get_show(show: str) -> RSSFeed:
 
 def get_shows() -> dict[str, RSSFeed]:
     return shows
+
+
+token: str = ""
+token_expiry = datetime.fromisoformat("2025-02-20T03:16:49.1356687Z")
+
+
+def get_token() -> str:
+    global token, token_expiry
+    if datetime.now(tz=ZoneInfo("UTC")) > token_expiry:
+        # The api issues two tokens. UserProfile, the second one is used for search
+        r = requests.post("https://isl.dr-massive.com/api/authorization/anonymous-sso?device=web_browser&lang=da&supportFallbackToken=true",
+                          json={"deviceId": str(uuid.uuid4()), "scopes": ["Catalog"], "optout": True}).json()[1]
+        token = r["value"]
+        token_expiry = datetime.fromisoformat(r["expirationDate"])
+    return token
+
+
+def search(query: str):
+    r = requests.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
+        "X-Authorization": f"Bearer {get_token()}"}).json()
+    return [(i["id"], i["title"]) for i in r["series"]["items"]]

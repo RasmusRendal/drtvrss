@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>DRTV2 - Search: {{ query }}</title>
+    </head>
+    <body>
+        <h1>DRTV2</h1>
+        <form action="/search/">
+            <input type="text" name="query"></input>
+            <input type="submit" value="Søg"></input>
+        </form>
+
+        <ul>
+            {% for i, title in results %}
+            <li><a href="/{{ i }}">{{ title }}</a></li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
