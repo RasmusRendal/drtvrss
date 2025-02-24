@@ -5,12 +5,12 @@ from time import time
 
 
 class RSSEntry:
-    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, time: Optional[datetime] = None):
+    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None):
         self.title = title
         self.description = description
         self.url = url
-        self.time = time
-        if url != None:
+        self.pubdate = pubdate
+        if url is not None:
             self.ep_link = url.split("/")[-1]
 
 
@@ -21,7 +21,7 @@ class RSSFeed:
         self.url = url
         self.entries = []
         self.age = time()
-        if url != None:
+        if url is not None:
             self.feed_url = url.split("/")[-1]
 
     def add_entry(self, entry: RSSEntry):
@@ -34,10 +34,10 @@ class RSSFeed:
         title.text = self.title
         ttl = ET.SubElement(channel, "ttl")
         ttl.text = "60"
-        if self.description != None:
+        if self.description is not None:
             description = ET.SubElement(channel, "description")
             description.text = self.description
-        if self.url != None:
+        if self.url is not None:
             url = ET.SubElement(channel, "link")
             url.text = self.url
 
@@ -45,14 +45,15 @@ class RSSFeed:
             item = ET.SubElement(channel, "item")
             title = ET.SubElement(item, "title")
             title.text = entry.title
-            if entry.description != None:
+            if entry.description is not None:
                 description = ET.SubElement(item, "description")
                 description.text = entry.description
-            if entry.url != None:
+            if entry.url is not None:
                 url = ET.SubElement(item, "link")
                 url.text = entry.url
-            if entry.time != None:
-                pubDate = ET.SubElement(item, "pubDate")
-                pubDate.text = entry.time.strftime("%a, %d %b %Y %H:%M:%S %z")
+            if entry.pubdate is not None:
+                pub_date = ET.SubElement(item, "pubDate")
+                pub_date.text = entry.pubdate.strftime(
+                    "%a, %d %b %Y %H:%M:%S %z")
 
         return ET.tostring(rss, xml_declaration=True, encoding="unicode")

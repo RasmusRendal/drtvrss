@@ -1,10 +1,12 @@
-from bs4 import BeautifulSoup
 from datetime import datetime
+from json.decoder import JSONDecodeError
+from time import time
+from zoneinfo import ZoneInfo
+import json
+
 from flask import Flask, Response, render_template
 from flask import abort
 from flask_caching import Cache
-from time import time
-from zoneinfo import ZoneInfo
 import requests
 
 from .rss import RSSEntry, RSSFeed
@@ -18,45 +20,39 @@ shows: dict[str, RSSFeed] = {}
 stream_urls: dict[str, str] = {}
 
 
-def episodes(show: str):
-    return BeautifulSoup(requests.get("https://www.dr.dk/drtv/serie/" + show).text).find(class_="d1-drtv__episodes")
-
-
-def parse_episode(e) -> RSSEntry:
-    extra_details = e.find(
-        class_="d1-drtv-episode-title-and-details__contextual-title-extra-details").contents[0].split(" | ")
-    title = e.find(
-        class_="d1-drtv-episode-title-and-details__contextual-title").contents[0]
-    time = datetime.strptime(extra_details[0], "%d. %b %Y").astimezone(
-        ZoneInfo("Europe/Copenhagen"))
-    description = e.find(
-        class_="d1-drtv-episode-description__short-description").contents[0]
-    url = e.find(
-        class_="d1-drtv-episode-title-and-details d1-drtv-episode-description__title-and-details").attrs["href"]
-    return RSSEntry(title, time=time, description=description, url=url)
-
-
-def parse_show(s, url) -> RSSFeed:
-    title = s.find(class_="dh1-drtv-hero__title").contents[0]
-    description = s.find(class_="dh1-item-desc__short-description").contents[0]
-    return RSSFeed(title, description=description, url=url)
-
-
 def get_show(show: str) -> RSSFeed:
     show = show.split("_")[-1]
     if show not in shows or shows[show].age + 3600 < time():
         url = "https://www.dr.dk/drtv/serie/" + show
         print("Fetching show", url)
-        r = requests.get(url)
+        r = requests.get(url, timeout=2)
         if r.status_code != 200:
             abort(404)
-        page = BeautifulSoup(r.text, features='html.parser')
+        m = r.text
+        snippet = "window.__data = "
+        start = m.find(snippet) + len(snippet)
+        end = len(m[start:])
+        try:
+            json.loads(m[start:])
+        except JSONDecodeError as e:
+            end = e.pos
+        parsed = json.loads(m[start:start+end])
+        page = parsed["cache"]["page"]
+        series = page[list(page.keys())[0]]["item"]
 
-        feed = parse_show(page, url)
-        episodes_elem = page.find(class_="d1-drtv__episodes")
-        if episodes_elem is not None:
-            for e in episodes_elem.children:
-                feed.add_entry(parse_episode(e))
+        feed = RSSFeed(series["title"],
+                       description=series["description"], url=url)
+
+        for ep in series["episodes"]["items"]:
+            # print(json.dumps(ep, indent=4))
+            pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
+            try:
+                pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
+                    " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
+            except:
+                pass
+            feed.add_entry(
+                RSSEntry(ep["title"], description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
 
         shows[show] = feed
     return shows[show]
