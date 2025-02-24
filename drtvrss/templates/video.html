@@ -67,8 +67,9 @@
                     }
                 });
                 const j = await response.json();
+                window.j = j;
 
-                var videoSrc = j[0]["url"];
+                var videoSrc = j.find(e => e["accessService"] == "StandardVideo")["url"];
 
                 if (Hls.isSupported()) {
                     var hls = new Hls();
