@@ -37,19 +37,19 @@ def get_show(show: str) -> RSSFeed:
         page = parsed["cache"]["page"]
         series = page[list(page.keys())[0]]["item"]
 
-        feed = RSSFeed(series["title"],
-                       description=series["description"], url=url)
+        feed = RSSFeed(series["show"]["title"],
+                       description=series["show"]["description"], url=url)
 
         for ep in series["episodes"]["items"]:
-            # print(json.dumps(ep, indent=4))
             pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
             try:
                 pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
                     " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
             except:
                 pass
+            print(json.dumps(ep, indent=4))
             feed.add_entry(
-                RSSEntry(ep["title"], description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
+                RSSEntry(ep["contextualTitle"], description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
 
         shows[show] = feed
     return shows[show]

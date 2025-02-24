@@ -5,6 +5,7 @@
     <body>
         <h1>{{ s.title }}</h1>
         <a href="/{{ s.feed_url }}.xml">RSS Link</a>
+        <p>{{ s.description }}</p>
         <h2>Episodes</h2>
         <ul>
             {% for ep in s.entries %}
