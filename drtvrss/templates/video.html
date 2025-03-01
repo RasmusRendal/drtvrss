@@ -94,6 +94,14 @@ video {
                     localStorage.setItem(progressID, video.currentTime);
                 };
             });
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                console.log(data);
+                if (data.details == Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
+                    alert("Kunne ikke indlæse videoen. Formentligt befinder du dig udenfor Danmark, og forsøger at se noget der kun er tilgængeligt hjemme.");
+                } else {
+                    alert("Ukendt fejl i streaming af video.");
+                }
+            });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = videoSrc;
         }
