@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 from json.decoder import JSONDecodeError
 from time import time
@@ -16,7 +17,7 @@ shows: dict[str, RSSFeed] = {}
 def get_jsonblob(url: str) -> dict:
     """Gets the JSON blob from some DRTV page"""
     print("Fetching DRTV page", url)
-    r = requests.get(url, timeout=2)
+    r = requests.get(url, timeout=5)
     if r.status_code != 200:
         abort(404)
     m = r.text
@@ -39,7 +40,7 @@ def get_show(show: str) -> RSSFeed:
         series = page[list(page.keys())[0]]["item"]
 
         feed = RSSFeed(series["show"]["title"],
-                       description=series["show"]["description"], url=url)
+                       description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"])
 
         seasons = series["show"]["seasons"]["items"]
         for s in seasons:
@@ -67,7 +68,7 @@ def get_show(show: str) -> RSSFeed:
                 if "contextualTitle" in ep:
                     title = ep["contextualTitle"]
                 feed.add_entry(
-                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
+                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"]))
 
         shows[show] = feed
     return shows[show]
@@ -92,7 +93,11 @@ def get_token() -> str:
     return token
 
 
+SearchResult = namedtuple(
+    "SearchResult", ["title", "wallpaper", "description"])
+
+
 def search(query: str):
     r = requests.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
         "X-Authorization": f"Bearer {get_token()}"}).json()
-    return [(i["id"], i["title"]) for i in r["series"]["items"]]
+    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"])) for i in r["series"]["items"]]

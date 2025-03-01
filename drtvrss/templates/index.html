@@ -1,21 +1,35 @@
-<html>
-    <head>
-        <title>DRTV2</title>
-    </head>
-    <body>
-        <h1>DRTV2</h1>
-        <form action="/search/">
-            <input type="text" name="query"></input>
-            <input type="submit" value="Søg"></input>
-        </form>
-        Folk har indtil videre set de følgende serier fra DRTV:
-        <ul>
-            {% for n, s in shows %}
-            <li><a href="/{{ n }}/">{{ s.title }}</a></li>
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="row py-lg-5">
+        <div class="col-lg-6 col-md-8 mx-auto">
+            <h1 class="fw-light">DRTV2</h1>
+            <p class="lead text-body-secondary">
+            Serier er det eneste der er understøttet. Film har jeg ikke rigtig orket, de fleste kan jeg ikke se udenfor Danmark alligevel.</br>
+            Kildekoden er at finde på <a href='https://github.com/RasmusRendal/drtvrss'>GitHub</a></br>
+            Klager kan sendes til <a href="mailto:rasmus@rend.al">rasmus@rend.al</a>.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="album py-5 bg-body-tertiary">
+    <div class="container">
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for i, show in shows %}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <img src="{{ show.wallpaper }}" width="100%" height="225">
+
+                    <div class="card-body">
+                        <h2><a href="/{{ i }}">{{ show.title }}</a></h2>
+                        <p class="card-text">{{ show.description }}</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
-        Serier er det eneste der er understøttet. Film har jeg ikke rigtig orket, de fleste kan jeg ikke se udenfor Danmark alligevel.</br>
-        Kildekoden er at finde på <a href='https://github.com/RasmusRendal/drtvrss'>GitHub</a></br>
-        Klager kan sendes til <a href="mailto:rasmus@rend.al">rasmus@rend.al</a>.
-    </body>
-</html>
+        </div>
+    </div>
+</div>
+{% endblock %}

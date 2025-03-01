@@ -1,88 +1,98 @@
-<html>
-    <head>
-        <title>{{ s.title }} - {{ e.title }}</title>
-        <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    </head>
-    <body>
-        <h1><a href="/{{ s.feed_url }}">{{ s.title }}</a> - {{ e.title }}</h1>
-        <video id="video" controls width="100%" height="80%" style="background-color: black;"></video>
-        <p>{{ e.description }}</p>
-        <script>
+{% extends "base.html" %}
+{% block head %}
+<title>{{ s.title }} - {{ e.title }}</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mx-auto" style="width: 90vw;"><a href="/{{ s.feed_url }}">{{ s.title }}</a> - {{ e.title }}</h1>
+    <video id="video" class="mx-auto" controls></video>
+    <p>{{ e.description }}</p>
+</div>
+<style>
+video {
+    width: 90vw;          /* Full width of the window */
+    max-height: 80vh;       /* Maximum height is 70% of the window height */
+    object-fit: contain;    /* This keeps aspect ratio, adding black bars if necessary */
+    display: block;         /* Remove extra space below video */
+    background-color: black; /* Optional, to make black bars explicit */
+}
+</style>
+<script>
 
-            async function getAnonymousToken() {
-                const url = "https://isl.dr-massive.com/api/authorization/anonymous-sso";
+    async function getAnonymousToken() {
+        const url = "https://isl.dr-massive.com/api/authorization/anonymous-sso";
 
-                function generateUUID() {
-                    return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
-                }
+        function generateUUID() {
+            return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
 
-                const deviceId = generateUUID();
+        const deviceId = generateUUID();
 
-                const queryParams = new URLSearchParams({
-                    device: "phone_android",
-                    lang: "da",
-                    supportFallbackToken: "true"
-                });
+        const queryParams = new URLSearchParams({
+            device: "phone_android",
+            lang: "da",
+            supportFallbackToken: "true"
+        });
 
-                const requestBody = JSON.stringify({
-                    deviceId: deviceId,
-                    scopes: ["Catalog"],
-                    optout: true
-                });
+        const requestBody = JSON.stringify({
+            deviceId: deviceId,
+            scopes: ["Catalog"],
+            optout: true
+        });
 
-                try {
-                    const response = await fetch(`${url}?${queryParams.toString()}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: requestBody
-                    });
+        try {
+            const response = await fetch(`${url}?${queryParams.toString()}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: requestBody
+            });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-
-                    const tokenResponse = await response.json();
-                    console.log("Token Response:", tokenResponse);
-                    return tokenResponse;
-                } catch (error) {
-                    console.error("Error fetching anonymous token:", error);
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            async function start() {
+            const tokenResponse = await response.json();
+            console.log("Token Response:", tokenResponse);
+            return tokenResponse;
+        } catch (error) {
+            console.error("Error fetching anonymous token:", error);
+        }
+    }
 
-                var video = document.getElementById('video');
+    async function start() {
 
-                const token = await getAnonymousToken();
-                const videoID = document.URL.split("_").reverse()[0]
-                const response = await fetch("https://production-cdn.dr-massive.com/api/items/" + videoID + "/videos?delivery=stream&device=web_browser&ff=idp%2Cldp%2Crpt&lang=da&resolution=HD-1080&sub=Anonymous", {
-                    method: 'GET',
-                    headers: {
-                        'authorization': 'Bearer: ' + token,
-                    }
-                });
-                const j = await response.json();
-                window.j = j;
+        var video = document.getElementById('video');
 
-                var videoSrc = j.find(e => e["accessService"] == "StandardVideo")["url"];
-
-                if (Hls.isSupported()) {
-                    var hls = new Hls();
-                    hls.loadSource(videoSrc);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                        video.play();
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = videoSrc;
-                }
+        const token = await getAnonymousToken();
+        const videoID = document.URL.split("_").reverse()[0]
+        const response = await fetch("https://production-cdn.dr-massive.com/api/items/" + videoID + "/videos?delivery=stream&device=web_browser&ff=idp%2Cldp%2Crpt&lang=da&resolution=HD-1080&sub=Anonymous", {
+            method: 'GET',
+            headers: {
+                'authorization': 'Bearer: ' + token,
             }
-            start()
-        </script>
-    </body>
-</html>
+        });
+        const j = await response.json();
+        window.j = j;
+
+        var videoSrc = j.find(e => e["accessService"] == "StandardVideo")["url"];
+
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+        }
+    }
+    start()
+</script>
+{% endblock %}

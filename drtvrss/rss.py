@@ -5,22 +5,24 @@ from time import time
 
 
 class RSSEntry:
-    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None):
+    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None):
         self.title = title
         self.description = description
         self.url = url
         self.pubdate = pubdate
+        self.wallpaper = wallpaper
         if url is not None:
             self.ep_link = url.split("/")[-1]
 
 
 class RSSFeed:
-    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None):
+    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None):
         self.title = title
         self.description = description
         self.url = url
         self.entries = []
         self.age = time()
+        self.wallpaper = wallpaper
         if url is not None:
             self.feed_url = url.split("/")[-1]
 

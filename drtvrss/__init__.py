@@ -57,5 +57,4 @@ def make_search_cache_key():
 def search_view():
     query = request.args.get("query")
     results = search(query)
-    print(results)
     return render_template("search.html", results=results, query=query)
