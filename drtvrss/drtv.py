@@ -41,22 +41,33 @@ def get_show(show: str) -> RSSFeed:
         feed = RSSFeed(series["show"]["title"],
                        description=series["show"]["description"], url=url)
 
-        for ep in series["episodes"]["items"]:
-            pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
-            if "releaseYear" in ep:
-                pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
-            try:
-                pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
-                    " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
-            except:
-                pass
-            try:
-                pubdate = datetime.fromisoformat(
-                    ep["customFields"]["AvailableFrom"])
-            except:
-                pass
-            feed.add_entry(
-                RSSEntry(ep["contextualTitle"], description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
+        seasons = series["show"]["seasons"]["items"]
+        for s in seasons:
+            season_blob = get_jsonblob("https://www.dr.dk/drtv" + s["path"])
+            season_episodes = season_blob["cache"]["page"][s["path"]
+                                                           ]["item"]["episodes"]["items"]
+
+            for ep in season_episodes:
+                pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
+                if "releaseYear" in ep:
+                    pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
+                try:
+                    pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
+                        " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
+                except:
+                    pass
+                try:
+                    pubdate = datetime.fromisoformat(
+                        ep["customFields"]["AvailableFrom"])
+                except:
+                    pass
+                title = ep["id"]
+                if "title" in ep:
+                    title = ep["title"]
+                if "contextualTitle" in ep:
+                    title = ep["contextualTitle"]
+                feed.add_entry(
+                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate))
 
         shows[show] = feed
     return shows[show]
