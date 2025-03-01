@@ -17,13 +17,14 @@ class RSSEntry:
 
 
 class RSSFeed:
-    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None):
+    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None, geo_restricted: bool = False):
         self.title = title
         self.description = description
         self.url = url
         self.entries = []
         self.age = time()
         self.wallpaper = wallpaper
+        self.geo_restricted = geo_restricted
         if url is not None:
             self.feed_url = url.split("/")[-1]
 

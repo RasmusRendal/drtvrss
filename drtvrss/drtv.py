@@ -51,8 +51,13 @@ def get_show(show: str) -> RSSFeed:
         page = parsed["cache"]["page"]
         series = page[list(page.keys())[0]]["item"]
 
+        geo_restricted = False
+        if "IsGeoRestricted" in series["customFields"]:
+            geo_restricted = series["customFields"]["IsGeoRestricted"].lower(
+            ) == "true"
+
         feed = RSSFeed(series["show"]["title"],
-                       description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"])
+                       description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
 
         seasons = series["show"]["seasons"]["items"]
         for s in seasons:
@@ -111,10 +116,10 @@ def get_token() -> str:
 
 
 SearchResult = namedtuple(
-    "SearchResult", ["title", "wallpaper", "description"])
+    "SearchResult", ["title", "wallpaper", "description", "geo_restricted"])
 
 
 def search(query: str):
     r = requests.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
         "X-Authorization": f"Bearer {get_token()}"}).json()
-    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"])) for i in r["series"]["items"]]
+    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"], i["customFields"]["IsGeoRestricted"].lower() == "true")) for i in r["series"]["items"]]
