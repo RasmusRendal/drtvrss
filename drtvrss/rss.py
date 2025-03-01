@@ -5,12 +5,13 @@ from time import time
 
 
 class RSSEntry:
-    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None):
+    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None, len_minutes: Optional[int] = None):
         self.title = title
         self.description = description
         self.url = url
         self.pubdate = pubdate
         self.wallpaper = wallpaper
+        self.len_minutes = len_minutes
         if url is not None:
             self.ep_link = url.split("/")[-1]
 

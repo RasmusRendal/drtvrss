@@ -35,6 +35,9 @@
                         <p class="card-text">{{ ep.description }}</p>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-body-secondary">{{ ep.pubdate.strftime("%d/%m %Y") }}</small>
+                            {% if ep.len_minutes %}
+                                <small class="text-body-secondary">{{ ep.len_minutes }}M</small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

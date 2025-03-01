@@ -31,6 +31,18 @@ def get_jsonblob(url: str) -> dict:
     return json.loads(m[start:start+end])
 
 
+def parse_len(s: str) -> int:
+    t = 0
+    if "T" in s:
+        hours, s = s.split("T")
+        t += int(hours) * 60
+    while len(s) > 0 and s[0] == " ":
+        s = s[1:]
+    if s[-1] == "M":
+        t += int(s[:-1])
+    return t
+
+
 def get_show(show: str) -> RSSFeed:
     show = show.split("_")[-1]
     if show not in shows or shows[show].age + 3600 < time():
@@ -50,11 +62,15 @@ def get_show(show: str) -> RSSFeed:
 
             for ep in season_episodes:
                 pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
+                len_minutes = None
                 if "releaseYear" in ep:
                     pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
                 try:
-                    pubdate = datetime.strptime(ep["customFields"]["ExtraDetails"].split(
-                        " |")[0], "%d. %b %Y").astimezone(ZoneInfo("Europe/Copenhagen"))
+                    date_part, len_part = ep["customFields"]["ExtraDetails"].split(
+                        " | ")
+                    len_minutes = parse_len(len_part)
+                    pubdate = datetime.strptime(date_part, "%d. %b %Y").astimezone(
+                        ZoneInfo("Europe/Copenhagen"))
                 except:
                     pass
                 try:
@@ -67,8 +83,9 @@ def get_show(show: str) -> RSSFeed:
                     title = ep["title"]
                 if "contextualTitle" in ep:
                     title = ep["contextualTitle"]
+
                 feed.add_entry(
-                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"]))
+                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes))
 
         shows[show] = feed
     return shows[show]
