@@ -26,6 +26,11 @@
               default = "127.0.0.1:8125";
               type = types.str;
             };
+            klagemail = mkOption {
+              description = "Complaints E-mail";
+              default = null;
+              type = types.str;
+            };
           };
           config = mkIf config.services.drtvrss.enable {
             systemd.services.drtvrss = let
@@ -42,6 +47,7 @@
               confinement.enable = true;
               after = ["network.target"];
               wantedBy = ["multi-user.target"];
+              environment.KLAGE_MAIL = config.services.drtvrss.klagemail;
               serviceConfig = {
                 DynamicUser = true;
                 Restart = "always";

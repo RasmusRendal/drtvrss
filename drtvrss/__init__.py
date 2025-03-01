@@ -1,5 +1,6 @@
 from flask import Flask, Response, render_template, redirect, abort, request
 from flask_caching import Cache
+import os
 
 from .drtv import get_show, get_shows, search
 
@@ -7,10 +8,12 @@ app = Flask(__name__)
 app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
 cache = Cache(app)
 
+complaints_email = os.getenv("KLAGE_MAIL", None)
+
 
 @app.route("/")
 def index():
-    return render_template("index.html", shows=get_shows().items())
+    return render_template("index.html", shows=get_shows().items(), complaints_email=complaints_email)
 
 
 @app.route("/favicon.ico")

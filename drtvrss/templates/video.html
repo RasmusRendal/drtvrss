@@ -4,18 +4,18 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {% endblock %}
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mx-auto" style="width: 90vw;"><a href="/{{ s.feed_url }}">{{ s.title }}</a> - {{ e.title }}</h1>
+<div class="container-fluid pt-2">
+    <h1 class="mx-auto" style="width: 100%;"><a href="/{{ s.feed_url }}">{{ s.title }}</a> - {{ e.title }}</h1>
     <video id="video" class="mx-auto" controls></video>
-    <p>{{ e.description }}</p>
+    <p class="pt-2">{{ e.description }}</p>
 </div>
 <style>
 video {
-    width: 90vw;          /* Full width of the window */
-    max-height: 80vh;       /* Maximum height is 70% of the window height */
-    object-fit: contain;    /* This keeps aspect ratio, adding black bars if necessary */
-    display: block;         /* Remove extra space below video */
-    background-color: black; /* Optional, to make black bars explicit */
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+    background-color: black;
 }
 </style>
 <script>
@@ -98,8 +98,6 @@ video {
                 console.log(data);
                 if (data.details == Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
                     alert("Kunne ikke indlæse videoen. Formentligt befinder du dig udenfor Danmark, og forsøger at se noget der kun er tilgængeligt hjemme.");
-                } else {
-                    alert("Ukendt fejl i streaming af video.");
                 }
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
