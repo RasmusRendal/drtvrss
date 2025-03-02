@@ -9,9 +9,9 @@ import uuid
 from flask import abort
 import requests
 
-from .rss import RSSEntry, RSSFeed
+from .show import Episode, Show
 
-shows: dict[str, RSSFeed] = {}
+shows: dict[str, Show] = {}
 
 
 def get_jsonblob(url: str) -> dict:
@@ -43,7 +43,7 @@ def parse_len(s: str) -> int:
     return t
 
 
-def get_show(show: str) -> RSSFeed:
+def get_show(show: str) -> Show:
     show = show.split("_")[-1]
     if show not in shows or shows[show].age + 3600 < time():
         url = "https://www.dr.dk/drtv/serie/" + show
@@ -56,8 +56,8 @@ def get_show(show: str) -> RSSFeed:
             geo_restricted = series["customFields"]["IsGeoRestricted"].lower(
             ) == "true"
 
-        feed = RSSFeed(series["show"]["title"],
-                       description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
+        feed = Show(series["show"]["title"],
+                    description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
 
         seasons = series["show"]["seasons"]["items"]
         for s in seasons:
@@ -90,13 +90,13 @@ def get_show(show: str) -> RSSFeed:
                     title = ep["contextualTitle"]
 
                 feed.add_entry(
-                    RSSEntry(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes))
+                    Episode(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes))
 
         shows[show] = feed
     return shows[show]
 
 
-def get_shows() -> dict[str, RSSFeed]:
+def get_shows() -> dict[str, Show]:
     return shows
 
 

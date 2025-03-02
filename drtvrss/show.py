@@ -4,7 +4,7 @@ from datetime import datetime
 from time import time
 
 
-class RSSEntry:
+class Episode:
     def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None, len_minutes: Optional[int] = None):
         self.title = title
         self.description = description
@@ -16,7 +16,7 @@ class RSSEntry:
             self.ep_link = url.split("/")[-1]
 
 
-class RSSFeed:
+class Show:
     def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None, geo_restricted: bool = False):
         self.title = title
         self.description = description
@@ -28,10 +28,10 @@ class RSSFeed:
         if url is not None:
             self.feed_url = url.split("/")[-1]
 
-    def add_entry(self, entry: RSSEntry):
+    def add_entry(self, entry: Episode):
         self.entries.append(entry)
 
-    def dump(self) -> str:
+    def to_rss_feed(self) -> str:
         rss = ET.Element("rss", attrib={"version": "2.0"})
         channel = ET.SubElement(rss, "channel")
         title = ET.SubElement(channel, "title")

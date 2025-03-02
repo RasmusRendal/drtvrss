@@ -17,6 +17,11 @@
             <p class="lead text-body-secondary">
             {{ s.description }}
             </p>
+            {% if s.url %}
+            <p class="lead text-body-secondary">
+                <a href="{{ s.url }}">Vis på DRTV</a>
+            </p>
+            {% endif %}
         </div>
     </div>
 </section>

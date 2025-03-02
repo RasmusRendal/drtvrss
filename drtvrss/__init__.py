@@ -48,7 +48,7 @@ def longlink(showid):
 @app.route("/<show>.xml")
 @cache.cached(timeout=15 * 60)
 def get_feed(show):
-    return Response(get_show(show).dump(), headers={"content-type": "application/rss+xml"})
+    return Response(get_show(show).to_rss_feed(), headers={"content-type": "application/rss+xml"})
 
 
 def make_search_cache_key():
