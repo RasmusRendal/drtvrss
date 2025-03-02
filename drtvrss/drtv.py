@@ -13,6 +13,9 @@ from .show import Episode, Season, Show
 
 shows: dict[str, Show] = {}
 
+GEO_RESTRICTED = "IsGeoRestricted"
+CUSTOM_FIELDS = "customFields"
+
 
 def get_jsonblob(url: str) -> dict:
     """Gets the JSON blob from some DRTV page"""
@@ -52,8 +55,8 @@ def get_show(show: str) -> Show:
         series = page[list(page.keys())[0]]["item"]
 
         geo_restricted = False
-        if "IsGeoRestricted" in series["customFields"]:
-            geo_restricted = series["customFields"]["IsGeoRestricted"].lower(
+        if GEO_RESTRICTED in series[CUSTOM_FIELDS]:
+            geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
             ) == "true"
 
         feed = Show(series["show"]["title"],
@@ -81,7 +84,7 @@ def get_show(show: str) -> Show:
                 if "releaseYear" in ep:
                     pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
                 try:
-                    date_part, len_part = ep["customFields"]["ExtraDetails"].split(
+                    date_part, len_part = ep[CUSTOM_FIELDS]["ExtraDetails"].split(
                         " | ")
                     len_minutes = parse_len(len_part)
                     pubdate = datetime.strptime(date_part, "%d. %b %Y").astimezone(
@@ -90,7 +93,7 @@ def get_show(show: str) -> Show:
                     pass
                 try:
                     pubdate = datetime.fromisoformat(
-                        ep["customFields"]["AvailableFrom"])
+                        ep[CUSTOM_FIELDS]["AvailableFrom"])
                 except:
                     pass
                 title = ep["id"]
@@ -99,8 +102,13 @@ def get_show(show: str) -> Show:
                 if "contextualTitle" in ep:
                     title = ep["contextualTitle"]
 
+                geo_restricted = False
+                if GEO_RESTRICTED in ep[CUSTOM_FIELDS]:
+                    geo_restricted = ep[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
+                    ) == "true"
+
                 season.add_episode(
-                    Episode(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes))
+                    Episode(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes, geo_restricted=geo_restricted))
 
             feed.add_season(season)
 
@@ -134,4 +142,4 @@ SearchResult = namedtuple(
 def search(query: str):
     r = requests.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
         "X-Authorization": f"Bearer {get_token()}"}).json()
-    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"], i["customFields"]["IsGeoRestricted"].lower() == "true")) for i in r["series"]["items"]]
+    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"], i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true")) for i in r["series"]["items"]]
