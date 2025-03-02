@@ -13,8 +13,10 @@ from .show import Episode, Season, Show
 
 shows: dict[str, Show] = {}
 
+# Having some commonly used keys as constant is a good way to avoid typos
 GEO_RESTRICTED = "IsGeoRestricted"
 CUSTOM_FIELDS = "customFields"
+RELEASE_YEAR = "releaseYear"
 
 
 def get_jsonblob(url: str) -> dict:
@@ -68,8 +70,8 @@ def get_show(show: str) -> Show:
             if title == feed.title:
                 if "seasonNumber" in s:
                     title = "Sæson " + str(s["seasonNumber"])
-                elif "releaseYear" in s:
-                    title = str(s["releaseYear"])
+                elif RELEASE_YEAR in s:
+                    title = str(s[RELEASE_YEAR])
 
             season_blob = get_jsonblob(
                 "https://www.dr.dk/drtv" + s["path"])
@@ -81,8 +83,13 @@ def get_show(show: str) -> Show:
             for ep in season_episodes:
                 pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
                 len_minutes = None
-                if "releaseYear" in ep:
-                    pubdate = datetime(year=ep["releaseYear"], month=1, day=1)
+                if RELEASE_YEAR in ep:
+                    try:
+                        pubdate = datetime(
+                            year=ep[RELEASE_YEAR], month=1, day=1)
+                    except ValueError:
+                        # Sometimes, they set RELEASE_YEAR to zero.
+                        pass
                 try:
                     date_part, len_part = ep[CUSTOM_FIELDS]["ExtraDetails"].split(
                         " | ")
