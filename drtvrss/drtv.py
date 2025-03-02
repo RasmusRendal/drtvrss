@@ -9,7 +9,7 @@ import uuid
 from flask import abort
 import requests
 
-from .show import Episode, Show
+from .show import Episode, Season, Show
 
 shows: dict[str, Show] = {}
 
@@ -61,9 +61,19 @@ def get_show(show: str) -> Show:
 
         seasons = series["show"]["seasons"]["items"]
         for s in seasons:
-            season_blob = get_jsonblob("https://www.dr.dk/drtv" + s["path"])
+            title = s["title"]
+            if title == feed.title:
+                if "seasonNumber" in s:
+                    title = "Sæson " + str(s["seasonNumber"])
+                elif "releaseYear" in s:
+                    title = str(s["releaseYear"])
+
+            season_blob = get_jsonblob(
+                "https://www.dr.dk/drtv" + s["path"])
             season_episodes = season_blob["cache"]["page"][s["path"]
                                                            ]["item"]["episodes"]["items"]
+
+            season = Season(title)
 
             for ep in season_episodes:
                 pubdate = datetime.now(tz=ZoneInfo("Europe/Copenhagen"))
@@ -89,8 +99,10 @@ def get_show(show: str) -> Show:
                 if "contextualTitle" in ep:
                     title = ep["contextualTitle"]
 
-                feed.add_entry(
+                season.add_episode(
                     Episode(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes))
+
+            feed.add_season(season)
 
         shows[show] = feed
     return shows[show]

@@ -29,8 +29,12 @@
 <div class="album py-5 bg-body-tertiary">
     <div class="container">
 
+        {% for season in s.seasons %}
+        {% if s.seasons|length != 1 %}
+            <h1 class="pt-4">{{ season.title }} </h1>
+        {% endif %}
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-            {% for ep in s.entries %}
+            {% for ep in season.episodes %}
             <div class="col">
                 <div class="card shadow-sm">
                     <img src="{{ ep.wallpaper }}" width="100%" height="225">
@@ -49,6 +53,7 @@
             </div>
             {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

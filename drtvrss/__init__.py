@@ -26,9 +26,10 @@ def favicon():
 def view_episode(showid, episode):
     show = get_show(showid)
     e = None
-    for entry in show.entries:
-        if episode in entry.url:
-            e = entry
+    for season in show.seasons:
+        for entry in season.episodes:
+            if episode in entry.url:
+                e = entry
     return render_template("video.html", s=show, e=e)
 
 
