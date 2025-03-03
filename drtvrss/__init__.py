@@ -19,7 +19,7 @@ for rec_show in os.getenv("RECOMMENDED_SHOWS", "").split(":"):
 
 @app.route("/")
 def index():
-    return render_template("index.html", shows=get_shows().items(), complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME)
+    return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME)
 
 
 @app.route("/favicon.ico")
