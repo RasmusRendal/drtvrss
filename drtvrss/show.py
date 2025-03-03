@@ -36,9 +36,7 @@ class Show:
         self.wallpaper = wallpaper
         self.geo_restricted = geo_restricted
         if url is not None:
-            print(url)
             self.feed_url = "/" + url + ".xml"
-            print(self.feed_url)
 
     def add_season(self, season: Season):
         self.seasons.append(season)

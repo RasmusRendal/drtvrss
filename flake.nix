@@ -31,6 +31,11 @@
               default = null;
               type = types.str;
             };
+            service_name = mkOption {
+              description = "Service Name";
+              default = "Public Service";
+              type = types.str;
+            };
           };
           config = mkIf config.services.drtvrss.enable {
             systemd.services.drtvrss = let
@@ -48,6 +53,7 @@
               after = ["network.target"];
               wantedBy = ["multi-user.target"];
               environment.KLAGE_MAIL = config.services.drtvrss.klagemail;
+              environment.SERVICE_NAME = config.services.drtvrss.service_name;
               serviceConfig = {
                 DynamicUser = true;
                 Restart = "always";

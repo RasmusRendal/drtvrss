@@ -67,7 +67,6 @@ def get_show(show: str) -> Show:
             geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
             ) == "true"
 
-        print(json.dumps(series[SHOW], indent=4))
         feed = Show(series[SHOW][TITLE],
                     description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
 
@@ -155,7 +154,6 @@ def get_program(prog: str) -> Program:
         jb = get_jsonblob(
             f"https://www.dr.dk/drtv/program/{str(progid)}")[CACHE][PAGE]
         program_blob = jb[list(jb.keys())[0]][ITEM]
-        print(json.dumps(program_blob, indent=4))
         programs[progid] = Program(
             program_blob[TITLE], program_blob["shortDescription"], url=program_blob["path"])
     return programs[progid]
@@ -177,5 +175,4 @@ def search(query: str) -> SearchResult:
     # Movies are stored in "playable"
     movies = [(i["id"], SearchResultItem(i[TITLE], i["images"]["wallpaper"], i["shortDescription"],
                                          i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true", i["path"])) for i in r["playable"]["items"] if "episode" not in i["path"]]
-    # print(json.dumps(r, indent=4))
     return SearchResult(series, movies)

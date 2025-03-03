@@ -9,11 +9,12 @@ app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
 cache = Cache(app)
 
 complaints_email = os.getenv("KLAGE_MAIL", None)
+SERVICE_NAME = os.getenv("SERVICE_NAME", "Public Service")
 
 
 @app.route("/")
 def index():
-    return render_template("index.html", shows=get_shows().items(), complaints_email=complaints_email)
+    return render_template("index.html", shows=get_shows().items(), complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME)
 
 
 @app.route("/favicon.ico")
@@ -23,7 +24,7 @@ def favicon():
 
 @app.route("/program/<progid>")
 def view_program(progid):
-    return render_template("video.html", e=get_program(progid))
+    return render_template("video.html", e=get_program(progid), SERVICE_NAME=SERVICE_NAME)
 
 
 @app.route("/<showid>/<episode>")
@@ -35,14 +36,14 @@ def view_episode(showid, episode):
         for entry in season.episodes:
             if episode in entry.url:
                 e = entry
-    return render_template("video.html", s=show, e=e)
+    return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME)
 
 
 @app.route("/<showid>/")
 @cache.cached(timeout=15 * 60)
 def view_show(showid):
     show = get_show(showid)
-    return render_template("show.html", s=show)
+    return render_template("show.html", s=show, SERVICE_NAME=SERVICE_NAME)
 
 
 @app.route("/drtv/serie/<showid>")
@@ -66,4 +67,4 @@ def make_search_cache_key():
 def search_view():
     query = request.args.get("query")
     results = search(query)
-    return render_template("search.html", results=results, query=query)
+    return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME)
