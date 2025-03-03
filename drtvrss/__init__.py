@@ -1,4 +1,4 @@
-from flask import Flask, Response, render_template, redirect, abort, request
+from flask import Flask, Response, render_template, redirect, request, send_from_directory
 from flask_caching import Cache
 import os
 
@@ -24,7 +24,7 @@ def index():
 
 @app.route("/favicon.ico")
 def favicon():
-    abort(404)
+    return send_from_directory(os.path.join(app.root_path, "templates"), "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
 
 @app.route("/program/<progid>")
