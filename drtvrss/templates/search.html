@@ -6,11 +6,23 @@
 <div class="album py-5 bg-body-tertiary">
     <div class="container">
 
+        {% if results.series|length > 0 %}
+        <h1>Serier</h1>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-            {% for i, show in results %}
+            {% for i, show in results.series %}
                 {% include "_show_card.html" %}
             {% endfor %}
         </div>
+        {% endif %}
+        {% if results.movies|length > 0 %}
+        <h1>Film</h1>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for i, show in results.movies %}
+                {% include "_show_card.html" %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block head %}
-<title>{{ s.title }} - {{ e.title }}</title>
+<title>{% if s %}{{ s.title }} - {% endif %}{{ e.title }}</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {% endblock %}
 {% block content %}
 <div class="container-fluid pt-2">
-    <h1 class="mx-auto" style="width: 100%;"><a href="/{{ s.feed_url }}">{{ s.title }}</a> - {{ e.title }}</h1>
+    <h1 class="mx-auto" style="width: 100%;">{% if s %}<a href="/{{ s.feed_url }}">{{ s.title }}</a> - {% endif %}{{ e.title }}</h1>
     <video id="video" class="mx-auto" controls></video>
     <p class="pt-2">{{ e.description }}</p>
     {% if e.url %}

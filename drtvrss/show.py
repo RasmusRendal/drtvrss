@@ -36,7 +36,9 @@ class Show:
         self.wallpaper = wallpaper
         self.geo_restricted = geo_restricted
         if url is not None:
-            self.feed_url = url.split("/")[-1]
+            print(url)
+            self.feed_url = "/" + url + ".xml"
+            print(self.feed_url)
 
     def add_season(self, season: Season):
         self.seasons.append(season)
@@ -72,3 +74,11 @@ class Show:
                         "%a, %d %b %Y %H:%M:%S %z")
 
         return ET.tostring(rss, xml_declaration=True, encoding="unicode")
+
+
+class Program:
+    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None):
+        self.title = title
+        self.description = description
+        self.url = url
+        self.age = time()

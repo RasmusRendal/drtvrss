@@ -2,7 +2,7 @@ from flask import Flask, Response, render_template, redirect, abort, request
 from flask_caching import Cache
 import os
 
-from .drtv import get_show, get_shows, search
+from .drtv import get_show, get_shows, search, get_program
 
 app = Flask(__name__)
 app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
@@ -19,6 +19,11 @@ def index():
 @app.route("/favicon.ico")
 def favicon():
     abort(404)
+
+
+@app.route("/program/<progid>")
+def view_program(progid):
+    return render_template("video.html", e=get_program(progid))
 
 
 @app.route("/<showid>/<episode>")

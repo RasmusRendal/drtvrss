@@ -9,14 +9,20 @@ import uuid
 from flask import abort
 import requests
 
-from .show import Episode, Season, Show
+from .show import Episode, Season, Show, Program
 
-shows: dict[str, Show] = {}
+shows: dict[int, Show] = {}
+programs: dict[int, Program] = {}
 
 # Having some commonly used keys as constant is a good way to avoid typos
 GEO_RESTRICTED = "IsGeoRestricted"
 CUSTOM_FIELDS = "customFields"
 RELEASE_YEAR = "releaseYear"
+SHOW = "show"
+TITLE = "title"
+CACHE = "cache"
+PAGE = "page"
+ITEM = "item"
 
 
 def get_jsonblob(url: str) -> dict:
@@ -49,24 +55,25 @@ def parse_len(s: str) -> int:
 
 
 def get_show(show: str) -> Show:
-    show = show.split("_")[-1]
-    if show not in shows or shows[show].age + 3600 < time():
-        url = "https://www.dr.dk/drtv/serie/" + show
+    showid = int(show.split("_")[-1])
+    if showid not in shows or shows[showid].age + 3600 < time():
+        url = "https://www.dr.dk/drtv/serie/" + str(showid)
         parsed = get_jsonblob(url)
-        page = parsed["cache"]["page"]
-        series = page[list(page.keys())[0]]["item"]
+        page = parsed[CACHE][PAGE]
+        series = page[list(page.keys())[0]][ITEM]
 
         geo_restricted = False
         if GEO_RESTRICTED in series[CUSTOM_FIELDS]:
             geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
             ) == "true"
 
-        feed = Show(series["show"]["title"],
-                    description=series["show"]["description"], url=url, wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
+        print(json.dumps(series[SHOW], indent=4))
+        feed = Show(series[SHOW][TITLE],
+                    description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
 
-        seasons = series["show"]["seasons"]["items"]
+        seasons = series[SHOW]["seasons"]["items"]
         for s in seasons:
-            title = s["title"]
+            title = s[TITLE]
             if title == feed.title:
                 if "seasonNumber" in s:
                     title = "Sæson " + str(s["seasonNumber"])
@@ -75,8 +82,8 @@ def get_show(show: str) -> Show:
 
             season_blob = get_jsonblob(
                 "https://www.dr.dk/drtv" + s["path"])
-            season_episodes = season_blob["cache"]["page"][s["path"]
-                                                           ]["item"]["episodes"]["items"]
+            season_episodes = season_blob[CACHE][PAGE][s["path"]
+                                                       ][ITEM]["episodes"]["items"]
 
             season = Season(title)
 
@@ -104,8 +111,8 @@ def get_show(show: str) -> Show:
                 except:
                     pass
                 title = ep["id"]
-                if "title" in ep:
-                    title = ep["title"]
+                if TITLE in ep:
+                    title = ep[TITLE]
                 if "contextualTitle" in ep:
                     title = ep["contextualTitle"]
 
@@ -119,11 +126,11 @@ def get_show(show: str) -> Show:
 
             feed.add_season(season)
 
-        shows[show] = feed
-    return shows[show]
+        shows[showid] = feed
+    return shows[showid]
 
 
-def get_shows() -> dict[str, Show]:
+def get_shows() -> dict[int, Show]:
     return shows
 
 
@@ -142,11 +149,33 @@ def get_token() -> str:
     return token
 
 
-SearchResult = namedtuple(
-    "SearchResult", ["title", "wallpaper", "description", "geo_restricted"])
+def get_program(prog: str) -> Program:
+    progid = int(prog.split("_")[-1])
+    if progid not in programs or programs[progid].age + 3600 < time():
+        jb = get_jsonblob(
+            f"https://www.dr.dk/drtv/program/{str(progid)}")[CACHE][PAGE]
+        program_blob = jb[list(jb.keys())[0]][ITEM]
+        print(json.dumps(program_blob, indent=4))
+        programs[progid] = Program(
+            program_blob[TITLE], program_blob["shortDescription"], url=program_blob["path"])
+    return programs[progid]
 
 
-def search(query: str):
+SearchResultItem = namedtuple(
+    "SearchResultItem", ["title", "wallpaper", "description", "geo_restricted", "url"])
+
+
+SearchResult = namedtuple("SearchResult", ["series", "movies"])
+
+
+def search(query: str) -> SearchResult:
     r = requests.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
         "X-Authorization": f"Bearer {get_token()}"}).json()
-    return [(i["id"], SearchResult(i["title"], i["images"]["wallpaper"], i["shortDescription"], i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true")) for i in r["series"]["items"]]
+    series = [(i["id"], SearchResultItem(i[TITLE], i["images"]["wallpaper"], i["shortDescription"],
+                                         i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true", "/" + i["path"].split("/")[-1] + "/")) for i in r["series"]["items"]]
+    # The returned JSON object actually does have a "movies" key, but it's always empty for some reason
+    # Movies are stored in "playable"
+    movies = [(i["id"], SearchResultItem(i[TITLE], i["images"]["wallpaper"], i["shortDescription"],
+                                         i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true", i["path"])) for i in r["playable"]["items"] if "episode" not in i["path"]]
+    # print(json.dumps(r, indent=4))
+    return SearchResult(series, movies)
