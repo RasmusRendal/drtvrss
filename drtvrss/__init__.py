@@ -17,6 +17,11 @@ def index():
     return render_template("index.html", shows=get_shows().items(), complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME)
 
 
+@app.route("/ttv.css")
+def ttv_css():
+    return Response(render_template("ttv.css"), headers={"content-type": "text/css"})
+
+
 @app.route("/favicon.ico")
 def favicon():
     abort(404)
