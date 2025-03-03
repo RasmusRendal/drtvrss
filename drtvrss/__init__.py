@@ -11,6 +11,11 @@ cache = Cache(app)
 complaints_email = os.getenv("KLAGE_MAIL", None)
 SERVICE_NAME = os.getenv("SERVICE_NAME", "Public Service")
 
+for rec_show in os.getenv("RECOMMENDED_SHOWS", "").split(":"):
+    if rec_show == "":
+        continue
+    get_show(rec_show)
+
 
 @app.route("/")
 def index():

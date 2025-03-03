@@ -36,6 +36,11 @@
               default = "Public Service";
               type = types.str;
             };
+            recommended_shows = mkOption {
+              description = "Shows that should populate the cache initially";
+              default = [];
+              type = types.listOf types.str;
+            };
           };
           config = mkIf config.services.drtvrss.enable {
             systemd.services.drtvrss = let
@@ -54,6 +59,13 @@
               wantedBy = ["multi-user.target"];
               environment.KLAGE_MAIL = config.services.drtvrss.klagemail;
               environment.SERVICE_NAME = config.services.drtvrss.service_name;
+              environment.RECOMMENDED_SHOWS = let
+                join = d: l:
+                  if pkgs.lib.length l == 0
+                  then builtins.elemAt l 0
+                  else pkgs.lib.lists.foldl (a: b: a + d + b) (builtins.elemAt l 0) (pkgs.lib.lists.tail l);
+              in
+                join ":" config.services.drtvrss.recommended_shows;
               serviceConfig = {
                 DynamicUser = true;
                 Restart = "always";
