@@ -55,7 +55,10 @@ def parse_len(s: str) -> int:
 
 
 def get_show(show: str) -> Show:
-    showid = int(show.split("_")[-1])
+    try:
+        showid = int(show.split("_")[-1])
+    except ValueError:
+        abort(404)
     if showid not in shows or shows[showid].age + 3600 < time():
         url = "https://www.dr.dk/drtv/serie/" + str(showid)
         parsed = get_jsonblob(url)
@@ -149,7 +152,10 @@ def get_token() -> str:
 
 
 def get_program(prog: str) -> Program:
-    progid = int(prog.split("_")[-1])
+    try:
+        progid = int(prog.split("_")[-1])
+    except ValueError:
+        abort(404)
     if progid not in programs or programs[progid].age + 3600 < time():
         jb = get_jsonblob(
             f"https://www.dr.dk/drtv/program/{str(progid)}")[CACHE][PAGE]
