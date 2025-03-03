@@ -17,6 +17,12 @@
             <p class="lead text-body-secondary">
             {{ s.description }}
             </p>
+            {% if s.next_episode %}
+            <p class="lead fs-6 text-body-secondary">
+                Næste episode: {{ s.next_episode.strftime("%d/%m %H:%M") }}
+            </p>
+            {% endif %}
+
             {% if s.url %}
             <p class="lead text-body-secondary">
                 <a href="https://www.dr.dk/drtv/serie/{{ s.url }}">Vis på DRTV</a>

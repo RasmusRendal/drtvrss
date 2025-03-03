@@ -23,6 +23,7 @@ TITLE = "title"
 CACHE = "cache"
 PAGE = "page"
 ITEM = "item"
+NEXT_EPISODE = "nextEpisode"
 
 
 def get_jsonblob(url: str) -> dict:
@@ -70,8 +71,13 @@ def get_show(show: str) -> Show:
             geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
             ) == "true"
 
+        next_episode = None
+        if NEXT_EPISODE in series[SHOW]:
+            next_episode = datetime.fromtimestamp(int(
+                series[SHOW][NEXT_EPISODE]["availableUTC"]))
+
         feed = Show(series[SHOW][TITLE],
-                    description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted)
+                    description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted, next_episode=next_episode)
 
         seasons = series[SHOW]["seasons"]["items"]
         for s in seasons:

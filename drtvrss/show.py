@@ -27,7 +27,7 @@ class Season:
 
 
 class Show:
-    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None, geo_restricted: bool = False):
+    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None, geo_restricted: bool = False, next_episode: Optional[datetime] = None):
         self.title = title
         self.description = description
         self.url = url
@@ -37,6 +37,7 @@ class Show:
         self.geo_restricted = geo_restricted
         if url is not None:
             self.feed_url = "/" + url + ".xml"
+        self.next_episode = next_episode
 
     def add_season(self, season: Season):
         self.seasons.append(season)
