@@ -64,9 +64,9 @@ class Show:
                 if entry.description is not None:
                     description = ET.SubElement(item, "description")
                     description.text = entry.description
-                if entry.url is not None:
+                if self.url is not None and entry.url is not None:
                     url = ET.SubElement(item, "link")
-                    url.text = entry.url
+                    url.text = "/" + self.url + "/" + entry.ep_link
                 if entry.pubdate is not None:
                     pub_date = ET.SubElement(item, "pubDate")
                     pub_date.text = entry.pubdate.strftime(
