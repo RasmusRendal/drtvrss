@@ -5,7 +5,7 @@
 {% endblock %}
 {% block content %}
 <div class="container-fluid pt-2">
-    <h1 class="mx-auto" style="width: 100%;">{% if s %}<a href="/{{ s.feed_url }}">{{ s.title }}</a> - {% endif %}{{ e.title }}</h1>
+    <h1 class="mx-auto" style="width: 100%;">{% if s %}<a href="/{{ s.url }}/">{{ s.title }}</a> - {% endif %}{{ e.title }}</h1>
     <video id="video" class="mx-auto" controls></video>
     <p class="pt-2">{{ e.description }}</p>
     {% if e.url %}
