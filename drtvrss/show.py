@@ -1,7 +1,12 @@
-from typing import Optional
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from time import time
+from typing import Optional
+import os
+import xml.etree.ElementTree as ET
+
+BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")
+if BASE_URL[-1] == "/":
+    BASE_URL = BASE_URL[:-1]
 
 
 class Episode:
@@ -66,7 +71,10 @@ class Show:
                     description.text = entry.description
                 if self.url is not None and entry.url is not None:
                     url = ET.SubElement(item, "link")
-                    url.text = "/" + self.url + "/" + entry.ep_link
+                    url.text = BASE_URL + "/" + self.url + "/" + entry.ep_link
+                    guid = ET.SubElement(item, "guid", attrib={
+                                         "isPermaLink": "false"})
+                    guid.text = "DRTV:" + entry.ep_link
                 if entry.pubdate is not None:
                     pub_date = ET.SubElement(item, "pubDate")
                     pub_date.text = entry.pubdate.strftime(

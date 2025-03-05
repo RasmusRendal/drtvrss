@@ -31,6 +31,11 @@
               default = null;
               type = types.str;
             };
+            base_url = mkOption {
+              description = "Base URL of the service";
+              default = null;
+              type = types.str;
+            };
             service_name = mkOption {
               description = "Service Name";
               default = "Public Service";
@@ -59,6 +64,7 @@
               wantedBy = ["multi-user.target"];
               environment.KLAGE_MAIL = config.services.drtvrss.klagemail;
               environment.SERVICE_NAME = config.services.drtvrss.service_name;
+              environment.BASE_URL = config.services.drtvrss.base_url;
               environment.RECOMMENDED_SHOWS = let
                 join = d: l:
                   if pkgs.lib.length l == 0
