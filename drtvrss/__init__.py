@@ -1,6 +1,9 @@
+from datetime import datetime
+from typing import Optional
+import os
+
 from flask import Flask, Response, render_template, redirect, request, send_from_directory
 from flask_caching import Cache
-import os
 
 from .drtv import get_show, get_shows, search, get_program
 
@@ -17,9 +20,18 @@ for rec_show in os.getenv("RECOMMENDED_SHOWS", "").split(":"):
     get_show(rec_show)
 
 
+def birthday() -> Optional[int]:
+    """If today is April 1st, returns the age of Danmarks Radio in years.
+    On any other day of the year, return None"""
+    n = datetime.now()
+    if n.month == 4 and n.day == 1:
+        return n.year - 1925
+    return None
+
+
 @app.route("/")
 def index():
-    return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME)
+    return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
 @app.route("/favicon.ico")
@@ -29,7 +41,7 @@ def favicon():
 
 @app.route("/program/<progid>")
 def view_program(progid):
-    return render_template("video.html", e=get_program(progid), SERVICE_NAME=SERVICE_NAME)
+    return render_template("video.html", e=get_program(progid), SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
 @app.route("/<showid>/<episode>")
@@ -41,14 +53,14 @@ def view_episode(showid, episode):
         for entry in season.episodes:
             if episode in entry.url:
                 e = entry
-    return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME)
+    return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
 @app.route("/<showid>/")
 @cache.cached(timeout=15 * 60)
 def view_show(showid):
     show = get_show(showid)
-    return render_template("show.html", s=show, SERVICE_NAME=SERVICE_NAME)
+    return render_template("show.html", s=show, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
 @app.route("/drtv/serie/<showid>")
@@ -72,4 +84,4 @@ def make_search_cache_key():
 def search_view():
     query = request.args.get("query")
     results = search(query)
-    return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME)
+    return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
