@@ -5,6 +5,7 @@ from time import time
 from zoneinfo import ZoneInfo
 import json
 import uuid
+import concurrent.futures
 
 from flask import abort
 import requests
@@ -80,6 +81,15 @@ def get_show(show: str) -> Show:
                     description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted, next_episode=next_episode)
 
         seasons = series[SHOW]["seasons"]["items"]
+        season_blob_urls = ["https://www.dr.dk/drtv" + s["path"] for s in seasons]
+        season_blobs = {}
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_url = {executor.submit(get_jsonblob, url): url for url in season_blob_urls}
+            for future in concurrent.futures.as_completed(future_to_url):
+                url = future_to_url[future]
+                blob = future.result()
+                season_blobs[url] = blob
+
         for s in seasons:
             title = s[TITLE]
             if title == feed.title:
@@ -88,8 +98,7 @@ def get_show(show: str) -> Show:
                 elif RELEASE_YEAR in s:
                     title = str(s[RELEASE_YEAR])
 
-            season_blob = get_jsonblob(
-                "https://www.dr.dk/drtv" + s["path"])
+            season_blob = season_blobs["https://www.dr.dk/drtv" + s["path"]]
             season_episodes = season_blob[CACHE][PAGE][s["path"]
                                                        ][ITEM]["episodes"]["items"]
 
