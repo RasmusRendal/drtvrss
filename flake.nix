@@ -12,7 +12,7 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
-      pythonEnv = pkgs.python3.withPackages (p: with p; [flask flask-caching requests gunicorn pylint]);
+      pythonEnv = pkgs.python3.withPackages (p: with p; [flask flask-caching aiohttp gunicorn pylint] ++ p.flask.optional-dependencies.async);
     in rec {
       devShells.default = pkgs.mkShell {
         buildInputs = [pythonEnv];
