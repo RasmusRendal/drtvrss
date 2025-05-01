@@ -40,6 +40,11 @@ async def index():
     return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
+@app.route("/ttv.css")
+def ttv_css():
+    return Response(render_template("ttv.css"), headers={"content-type": "text/css"})
+
+
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(os.path.join(app.root_path, "templates"), "favicon.ico", mimetype="image/vnd.microsoft.icon")
