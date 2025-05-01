@@ -4,10 +4,12 @@ from json.decoder import JSONDecodeError
 from time import time
 from zoneinfo import ZoneInfo
 import json
+import ssl
 import uuid
 
 import asyncio
-from aiohttp import ClientSession
+import certifi
+from aiohttp import ClientSession, TCPConnector
 
 from flask import abort
 
@@ -27,6 +29,7 @@ PAGE = "page"
 ITEM = "item"
 NEXT_EPISODE = "nextEpisode"
 
+ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 
 async def get_jsonblob(session: ClientSession, url: str) -> dict:
@@ -64,7 +67,7 @@ async def get_show(show: str) -> Show:
     except ValueError:
         abort(404)
     if showid not in shows or shows[showid].age + 3600 < time():
-        async with ClientSession() as session:
+        async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
             url = "https://www.dr.dk/drtv/serie/" + str(showid)
             parsed = await get_jsonblob(session, url)
             page = parsed[CACHE][PAGE]
@@ -153,7 +156,7 @@ token_expiry = datetime.fromisoformat("2025-02-20T03:16:49.1356687Z")
 async def get_token() -> str:
     global token, token_expiry
     if datetime.now(tz=ZoneInfo("UTC")) > token_expiry:
-        async with ClientSession() as session:
+        async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
             # The api issues two tokens. UserProfile, the second one is used for search
             async with session.post("https://isl.dr-massive.com/api/authorization/anonymous-sso?device=web_browser&lang=da&supportFallbackToken=true",
                                     json={"deviceId": str(uuid.uuid4()), "scopes": ["Catalog"], "optout": True}) as r:
@@ -164,7 +167,7 @@ async def get_token() -> str:
 
 
 async def get_program(prog: str) -> Program:
-    async with ClientSession() as session:
+    async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
         try:
             progid = int(prog.split("_")[-1])
         except ValueError:
@@ -187,7 +190,7 @@ SearchResult = namedtuple("SearchResult", ["series", "movies"])
 
 
 async def search(query: str) -> SearchResult:
-    async with ClientSession() as session:
+    async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
         async with session.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
                 "X-Authorization": f"Bearer {await get_token()}"}) as r:
             r = await r.json()
