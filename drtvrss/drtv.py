@@ -87,6 +87,15 @@ async def get_show(show: str) -> Show:
                         description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted, next_episode=next_episode)
 
             seasons = series[SHOW]["seasons"]["items"]
+            season_blob_urls = [
+                "https://www.dr.dk/drtv" + s["path"] for s in seasons]
+
+            async def fetch_season_blob(session, url):
+                return (url, await get_jsonblob(session, url))
+
+            tasks = [fetch_season_blob(session, url)
+                     for url in season_blob_urls]
+            season_blobs = dict(await asyncio.gather(*tasks))
 
             for s in seasons:
                 title = s[TITLE]
@@ -96,7 +105,7 @@ async def get_show(show: str) -> Show:
                     elif RELEASE_YEAR in s:
                         title = str(s[RELEASE_YEAR])
 
-                season_blob = await get_jsonblob(session, "https://www.dr.dk/drtv" + s["path"])
+                season_blob = season_blobs["https://www.dr.dk/drtv" + s["path"]]
                 season_episodes = season_blob[CACHE][PAGE][s["path"]
                                                            ][ITEM]["episodes"]["items"]
 
