@@ -59,7 +59,6 @@
               };
             in {
               enable = true;
-              confinement.enable = true;
               after = ["network.target"];
               wantedBy = ["multi-user.target"];
               environment.KLAGE_MAIL = config.services.drtvrss.klagemail;
