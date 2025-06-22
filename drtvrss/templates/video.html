@@ -7,7 +7,7 @@
 <div class="container-fluid pt-2">
     <h1 class="mx-auto" style="width: 100%;">{% if s %}<a href="/{{ s.url }}/">{{ s.title }}</a> - {% endif %}{{ e.title }}</h1>
     <video id="video" class="mx-auto" controls></video>
-    <p class="pt-2">{{ e.description }}</p>
+    <p class="pt-2" style="white-space: pre-wrap;">{{ e.description }}</p>
     {% if e.url %}
         <a href="https://www.dr.dk/drtv{{ e.url }}">Se på DRTV</a>
     {% endif %}

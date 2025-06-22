@@ -146,7 +146,7 @@ async def get_show(show: str) -> Show:
                         ) == "true"
 
                     season.add_episode(
-                        Episode(title, description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes, geo_restricted=geo_restricted))
+                        Episode(title, short_description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes, geo_restricted=geo_restricted))
 
                 feed.add_season(season)
 
@@ -157,6 +157,19 @@ async def get_show(show: str) -> Show:
 def get_shows() -> dict[int, Show]:
     return shows
 
+
+async def get_long_description(episode: Episode):
+    if episode.description != "":
+        return
+    async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
+        try:
+            jb = await get_jsonblob(session, "https://dr.dk/drtv/" + episode.url)
+            jb = jb[CACHE][PAGE]
+            episode_blob = jb[list(jb.keys())[0]][ITEM]
+            episode.description = episode_blob["description"]
+        except:
+            episode.description = episode.short_description
+    
 
 token: str = ""
 token_expiry = datetime.fromisoformat("2025-02-20T03:16:49.1356687Z")

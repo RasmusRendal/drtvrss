@@ -10,9 +10,10 @@ if BASE_URL[-1] == "/":
 
 
 class Episode:
-    def __init__(self, title, description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None, len_minutes: Optional[int] = None, geo_restricted: bool = False):
+    def __init__(self, title, short_description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None, len_minutes: Optional[int] = None, geo_restricted: bool = False):
         self.title = title
-        self.description = description
+        self.short_description = short_description
+        self.description = ""
         self.url = url
         self.pubdate = pubdate
         self.wallpaper = wallpaper

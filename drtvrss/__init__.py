@@ -7,7 +7,7 @@ import asyncio
 from flask import Flask, Response, render_template, redirect, request, send_from_directory
 from flask_caching import Cache
 
-from .drtv import get_show, get_shows, search, get_program
+from .drtv import get_show, get_shows, search, get_program, get_long_description
 
 app = Flask(__name__)
 app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
@@ -49,6 +49,7 @@ async def view_episode(showid, episode):
         for entry in season.episodes:
             if episode in entry.url:
                 e = entry
+    await get_long_description(e)
     return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
 
 
