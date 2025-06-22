@@ -16,16 +16,6 @@ cache = Cache(app)
 complaints_email = os.getenv("KLAGE_MAIL", None)
 SERVICE_NAME = os.getenv("SERVICE_NAME", "Public Service")
 
-
-async def fetch_recommended_shows():
-    for rec_show in os.getenv("RECOMMENDED_SHOWS", "").split(":"):
-        if rec_show == "":
-            continue
-        await get_show(rec_show)
-
-asyncio.run(fetch_recommended_shows())
-
-
 def birthday() -> Optional[int]:
     """If today is April 1st, returns the age of Danmarks Radio in years.
     On any other day of the year, return None"""
@@ -91,3 +81,14 @@ async def search_view():
     query = request.args.get("query")
     results = await search(query)
     return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+
+# Taken from SO: https://stackoverflow.com/a/77949082
+@app.before_request
+async def fetch_recommended_shows():
+    app.before_request_funcs[None].remove(fetch_recommended_shows)
+    recommended_shows = os.getenv("RECOMMENDED_SHOWS", "")
+    print(f"Fetching recommended shows {recommended_shows}")
+    for rec_show in recommended_shows.split(":"):
+        if rec_show == "":
+            continue
+        await get_show(rec_show)
