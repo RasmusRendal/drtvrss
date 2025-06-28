@@ -18,6 +18,11 @@
                     <a href="/" class="navbar-brand d-flex align-items-center">
                         <strong>{{ SERVICE_NAME }}</strong>
                     </a>
+                    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                    {% for slug, channel in channels.items() %}
+                     <li><a href="/live/{{ slug }}" class="nav-link px-2 text-white">{{ channel.title }}</a></li>
+                    {% endfor %}
+                    </ul>
                     <form class="col-12 col-lg-auto mb-3 mb-lg-0" role="search" action="/search/">
                         <input type="search" name="query" class="form-control" placeholder="Søg..." aria-label="Søg" {% if query%} value="{{ query }}" {% endif %}>
                     </form>
