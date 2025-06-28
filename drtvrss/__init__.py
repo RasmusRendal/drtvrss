@@ -4,10 +4,11 @@ import os
 
 import asyncio
 
-from flask import Flask, Response, render_template, redirect, request, send_from_directory
+from flask import abort, Flask, Response, render_template, redirect, request, send_from_directory
 from flask_caching import Cache
 
 from .drtv import get_show, get_shows, search, get_program, get_long_description
+from .live import get_channels
 
 app = Flask(__name__)
 app.config.from_mapping({"CACHE_TYPE": "SimpleCache"})
@@ -27,7 +28,7 @@ def birthday() -> Optional[int]:
 
 @app.route("/")
 async def index():
-    return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+    return render_template("index.html", shows=list(get_shows().items())[:9], complaints_email=complaints_email, SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
 
 
 @app.route("/favicon.ico")
@@ -37,7 +38,7 @@ def favicon():
 
 @app.route("/program/<progid>")
 async def view_program(progid):
-    return render_template("video.html", e=await get_program(progid), SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+    return render_template("video.html", e=await get_program(progid), SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
 
 
 @app.route("/<showid>/<episode>")
@@ -50,14 +51,14 @@ async def view_episode(showid, episode):
             if episode in entry.url:
                 e = entry
     await get_long_description(e)
-    return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+    return render_template("video.html", s=show, e=e, SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
 
 
 @app.route("/<showid>/")
 @cache.cached(timeout=15 * 60)
 async def view_show(showid):
     show = await get_show(showid)
-    return render_template("show.html", s=show, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+    return render_template("show.html", s=show, SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
 
 
 @app.route("/drtv/serie/<showid>")
@@ -81,7 +82,16 @@ def make_search_cache_key():
 async def search_view():
     query = request.args.get("query")
     results = await search(query)
-    return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME, birthday=birthday())
+    return render_template("search.html", results=results, query=query, SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
+
+@app.route("/live/<channel>")
+async def live_channel(channel):
+    channels = await get_channels()
+    if channel in channels:
+        return render_template("live.html", channel=channels[channel], SERVICE_NAME=SERVICE_NAME, birthday=birthday(), channels=await get_channels())
+    else:
+        abort(404)
+    
 
 # Taken from SO: https://stackoverflow.com/a/77949082
 @app.before_request
