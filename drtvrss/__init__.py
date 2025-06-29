@@ -74,6 +74,8 @@ async def view_episode(showid, episode):
         for entry in season.episodes:
             if episode in entry.url:
                 e = entry
+    if e is None:
+        abort(404)
     await get_long_description(e)
     return render_template(
         "video.html",
