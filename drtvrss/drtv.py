@@ -46,7 +46,7 @@ async def get_jsonblob(session: ClientSession, url: str) -> dict:
             json.loads(m[start:])
         except JSONDecodeError as e:
             end = e.pos
-        return json.loads(m[start:start+end])
+        return json.loads(m[start : start + end])
 
 
 def parse_len(s: str) -> int:
@@ -75,26 +75,30 @@ async def get_show(show: str) -> Show:
 
             geo_restricted = False
             if GEO_RESTRICTED in series[CUSTOM_FIELDS]:
-                geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
-                ) == "true"
+                geo_restricted = series[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true"
 
             next_episode = None
             if NEXT_EPISODE in series[SHOW]:
-                next_episode = datetime.fromtimestamp(int(
-                    series[SHOW][NEXT_EPISODE]["availableUTC"]))
+                next_episode = datetime.fromtimestamp(
+                    int(series[SHOW][NEXT_EPISODE]["availableUTC"])
+                )
 
-            feed = Show(series[SHOW][TITLE],
-                        description=series[SHOW]["description"], url=series[SHOW]["path"].split("/")[-1], wallpaper=series["images"]["wallpaper"], geo_restricted=geo_restricted, next_episode=next_episode)
+            feed = Show(
+                series[SHOW][TITLE],
+                description=series[SHOW]["description"],
+                url=series[SHOW]["path"].split("/")[-1],
+                wallpaper=series["images"]["wallpaper"],
+                geo_restricted=geo_restricted,
+                next_episode=next_episode,
+            )
 
             seasons = series[SHOW]["seasons"]["items"]
-            season_blob_urls = [
-                "https://www.dr.dk/drtv" + s["path"] for s in seasons]
+            season_blob_urls = ["https://www.dr.dk/drtv" + s["path"] for s in seasons]
 
             async def fetch_season_blob(session, url):
                 return (url, await get_jsonblob(session, url))
 
-            tasks = [fetch_season_blob(session, url)
-                     for url in season_blob_urls]
+            tasks = [fetch_season_blob(session, url) for url in season_blob_urls]
             season_blobs = dict(await asyncio.gather(*tasks))
 
             for s in seasons:
@@ -106,8 +110,9 @@ async def get_show(show: str) -> Show:
                         title = str(s[RELEASE_YEAR])
 
                 season_blob = season_blobs["https://www.dr.dk/drtv" + s["path"]]
-                season_episodes = season_blob[CACHE][PAGE][s["path"]
-                                                           ][ITEM]["episodes"]["items"]
+                season_episodes = season_blob[CACHE][PAGE][s["path"]][ITEM]["episodes"][
+                    "items"
+                ]
 
                 season = Season(title)
 
@@ -116,22 +121,24 @@ async def get_show(show: str) -> Show:
                     len_minutes = None
                     if RELEASE_YEAR in ep:
                         try:
-                            pubdate = datetime(
-                                year=ep[RELEASE_YEAR], month=1, day=1)
+                            pubdate = datetime(year=ep[RELEASE_YEAR], month=1, day=1)
                         except ValueError:
                             # Sometimes, they set RELEASE_YEAR to zero.
                             pass
                     try:
                         date_part, len_part = ep[CUSTOM_FIELDS]["ExtraDetails"].split(
-                            " | ")
+                            " | "
+                        )
                         len_minutes = parse_len(len_part)
                         pubdate = datetime.strptime(date_part, "%d. %b %Y").astimezone(
-                            ZoneInfo("Europe/Copenhagen"))
+                            ZoneInfo("Europe/Copenhagen")
+                        )
                     except:
                         pass
                     try:
                         pubdate = datetime.fromisoformat(
-                            ep[CUSTOM_FIELDS]["AvailableFrom"])
+                            ep[CUSTOM_FIELDS]["AvailableFrom"]
+                        )
                     except:
                         pass
                     title = ep["id"]
@@ -142,11 +149,21 @@ async def get_show(show: str) -> Show:
 
                     geo_restricted = False
                     if GEO_RESTRICTED in ep[CUSTOM_FIELDS]:
-                        geo_restricted = ep[CUSTOM_FIELDS][GEO_RESTRICTED].lower(
-                        ) == "true"
+                        geo_restricted = (
+                            ep[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true"
+                        )
 
                     season.add_episode(
-                        Episode(title, short_description=ep["shortDescription"], url=ep["path"], pubdate=pubdate, wallpaper=ep["images"]["wallpaper"], len_minutes=len_minutes, geo_restricted=geo_restricted))
+                        Episode(
+                            title,
+                            short_description=ep["shortDescription"],
+                            url=ep["path"],
+                            pubdate=pubdate,
+                            wallpaper=ep["images"]["wallpaper"],
+                            len_minutes=len_minutes,
+                            geo_restricted=geo_restricted,
+                        )
+                    )
 
                 feed.add_season(season)
 
@@ -169,7 +186,7 @@ async def get_long_description(episode: Episode):
             episode.description = episode_blob["description"]
         except:
             episode.description = episode.short_description
-    
+
 
 token: str = ""
 token_expiry = datetime.fromisoformat("2025-02-20T03:16:49.1356687Z")
@@ -180,8 +197,14 @@ async def get_token() -> str:
     if datetime.now(tz=ZoneInfo("UTC")) > token_expiry:
         async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
             # The api issues two tokens. UserProfile, the second one is used for search
-            async with session.post("https://isl.dr-massive.com/api/authorization/anonymous-sso?device=web_browser&lang=da&supportFallbackToken=true",
-                                    json={"deviceId": str(uuid.uuid4()), "scopes": ["Catalog"], "optout": True}) as r:
+            async with session.post(
+                "https://isl.dr-massive.com/api/authorization/anonymous-sso?device=web_browser&lang=da&supportFallbackToken=true",
+                json={
+                    "deviceId": str(uuid.uuid4()),
+                    "scopes": ["Catalog"],
+                    "optout": True,
+                },
+            ) as r:
                 r = (await r.json())[1]
                 token = r["value"]
                 token_expiry = datetime.fromisoformat(r["expirationDate"])
@@ -195,17 +218,22 @@ async def get_program(prog: str) -> Program:
         except ValueError:
             abort(404)
         if progid not in programs or programs[progid].age + 3600 < time():
-            jb = await get_jsonblob(session,
-                                    f"https://www.dr.dk/drtv/program/{str(progid)}")
+            jb = await get_jsonblob(
+                session, f"https://www.dr.dk/drtv/program/{str(progid)}"
+            )
             jb = jb[CACHE][PAGE]
             program_blob = jb[list(jb.keys())[0]][ITEM]
             programs[progid] = Program(
-                program_blob[TITLE], program_blob["shortDescription"], url=program_blob["path"])
+                program_blob[TITLE],
+                program_blob["shortDescription"],
+                url=program_blob["path"],
+            )
         return programs[progid]
 
 
 SearchResultItem = namedtuple(
-    "SearchResultItem", ["title", "wallpaper", "description", "geo_restricted", "url"])
+    "SearchResultItem", ["title", "wallpaper", "description", "geo_restricted", "url"]
+)
 
 
 SearchResult = namedtuple("SearchResult", ["series", "movies"])
@@ -213,13 +241,39 @@ SearchResult = namedtuple("SearchResult", ["series", "movies"])
 
 async def search(query: str) -> SearchResult:
     async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
-        async with session.get("https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term=" + query, headers={
-                "X-Authorization": f"Bearer {await get_token()}"}) as r:
+        async with session.get(
+            "https://prod95.dr-massive.com/api/search?device=web_browser&ff=idp%2Cldp%2Crpt&group=true&lang=da&segments=drtv%2Coptedout&term="
+            + query,
+            headers={"X-Authorization": f"Bearer {await get_token()}"},
+        ) as r:
             r = await r.json()
-            series = [(i["id"], SearchResultItem(i[TITLE], i["images"]["wallpaper"], i["shortDescription"],
-                                                 i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true", "/" + i["path"].split("/")[-1] + "/")) for i in r["series"]["items"]]
+            series = [
+                (
+                    i["id"],
+                    SearchResultItem(
+                        i[TITLE],
+                        i["images"]["wallpaper"],
+                        i["shortDescription"],
+                        i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true",
+                        "/" + i["path"].split("/")[-1] + "/",
+                    ),
+                )
+                for i in r["series"]["items"]
+            ]
             # The returned JSON object actually does have a "movies" key, but it's always empty for some reason
             # Movies are stored in "playable"
-            movies = [(i["id"], SearchResultItem(i[TITLE], i["images"]["wallpaper"], i["shortDescription"],
-                                                 i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true", i["path"])) for i in r["playable"]["items"] if "episode" not in i["path"]]
+            movies = [
+                (
+                    i["id"],
+                    SearchResultItem(
+                        i[TITLE],
+                        i["images"]["wallpaper"],
+                        i["shortDescription"],
+                        i[CUSTOM_FIELDS][GEO_RESTRICTED].lower() == "true",
+                        i["path"],
+                    ),
+                )
+                for i in r["playable"]["items"]
+                if "episode" not in i["path"]
+            ]
             return SearchResult(series, movies)

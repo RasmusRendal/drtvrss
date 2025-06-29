@@ -10,7 +10,16 @@ if BASE_URL[-1] == "/":
 
 
 class Episode:
-    def __init__(self, title, short_description: Optional[str] = None, url: Optional[str] = None, pubdate: Optional[datetime] = None, wallpaper: Optional[str] = None, len_minutes: Optional[int] = None, geo_restricted: bool = False):
+    def __init__(
+        self,
+        title,
+        short_description: Optional[str] = None,
+        url: Optional[str] = None,
+        pubdate: Optional[datetime] = None,
+        wallpaper: Optional[str] = None,
+        len_minutes: Optional[int] = None,
+        geo_restricted: bool = False,
+    ):
         self.title = title
         self.short_description = short_description
         self.description = ""
@@ -33,7 +42,15 @@ class Season:
 
 
 class Show:
-    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None, wallpaper: Optional[str] = None, geo_restricted: bool = False, next_episode: Optional[datetime] = None):
+    def __init__(
+        self,
+        title: str,
+        description: Optional[str] = None,
+        url: Optional[str] = None,
+        wallpaper: Optional[str] = None,
+        geo_restricted: bool = False,
+        next_episode: Optional[datetime] = None,
+    ):
         self.title = title
         self.description = description
         self.url = url
@@ -73,19 +90,19 @@ class Show:
                 if self.url is not None and entry.url is not None:
                     url = ET.SubElement(item, "link")
                     url.text = BASE_URL + "/" + self.url + "/" + entry.ep_link
-                    guid = ET.SubElement(item, "guid", attrib={
-                                         "isPermaLink": "false"})
+                    guid = ET.SubElement(item, "guid", attrib={"isPermaLink": "false"})
                     guid.text = "DRTV:" + entry.ep_link
                 if entry.pubdate is not None:
                     pub_date = ET.SubElement(item, "pubDate")
-                    pub_date.text = entry.pubdate.strftime(
-                        "%a, %d %b %Y %H:%M:%S %z")
+                    pub_date.text = entry.pubdate.strftime("%a, %d %b %Y %H:%M:%S %z")
 
         return ET.tostring(rss, xml_declaration=True, encoding="unicode")
 
 
 class Program:
-    def __init__(self, title: str, description: Optional[str] = None, url: Optional[str] = None):
+    def __init__(
+        self, title: str, description: Optional[str] = None, url: Optional[str] = None
+    ):
         self.title = title
         self.description = description
         self.url = url
