@@ -43,7 +43,9 @@
             {% for ep in season.episodes %}
             <div class="col">
                 <div class="card shadow-sm">
-                    <img src="{{ ep.wallpaper }}" width="100%" height="225">
+                    <a href="{{ ep.ep_link }}">
+                        <img src="{{ ep.wallpaper }}" width="100%" height="225">
+                    </a>
 
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
