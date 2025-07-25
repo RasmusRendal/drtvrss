@@ -15,3 +15,6 @@ Running the project with Nix is also not supported.
 What I'm trying to say is, you're on your own buddy.
 
 Contribution guidelines can be found [here](https://www.youtube.com/watch?v=gWexE-YVnOs)
+
+## Hacking instructions
+To start a repl where all the async stuff works, do `python3 -m asyncio`.

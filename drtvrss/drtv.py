@@ -70,8 +70,8 @@ async def get_show(show: str) -> Show:
         async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
             url = "https://www.dr.dk/drtv/serie/" + str(showid)
             parsed = await get_jsonblob(session, url)
-            page = parsed[CACHE][PAGE]
-            series = page[list(page.keys())[0]][ITEM]
+            page = parsed[CACHE]["itemDetail"]
+            series = page[list(page.keys())[-1]][ITEM]
 
             geo_restricted = False
             if GEO_RESTRICTED in series[CUSTOM_FIELDS]:
