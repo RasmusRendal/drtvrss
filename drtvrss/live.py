@@ -21,7 +21,7 @@ last_fetch = 0
 async def get_channels():
     global live_channels
     global last_fetch
-    if last_fetch + 60 * 60 * 24 < time():
+    if last_fetch + 60 * 30 < time():
         async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as session:
             blob = await get_jsonblob(session, "https://www.dr.dk/drtv/kanal/dr1_20875")
             blob = blob["cache"]["list"]
